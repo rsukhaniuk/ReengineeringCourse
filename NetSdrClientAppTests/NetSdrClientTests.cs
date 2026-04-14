@@ -1,5 +1,6 @@
 ﻿using Moq;
 using NetSdrClientApp;
+using NetSdrClientApp.Messages;
 using NetSdrClientApp.Networking;
 
 namespace NetSdrClientAppTests;
@@ -11,6 +12,11 @@ public class NetSdrClientTests
     Mock<IUdpClient> _updMock;
 
     public NetSdrClientTests() { }
+
+    private async Task ConnectClientAsync()
+    {
+        await _client.ConnectAsync();
+    }
 
     [SetUp]
     public void Setup()
@@ -112,6 +118,45 @@ public class NetSdrClientTests
         //assert
         //No exception thrown
         _updMock.Verify(tcp => tcp.StopListening(), Times.Once);
+        Assert.That(_client.IQStarted, Is.False);
+    }
+
+    [Test]
+    public async Task ChangeFrequencyTest()
+    {
+        //Arrange
+        await ConnectClientAsync();
+        long hz = 100_000_000;
+        int channel = 1;
+
+        var args = new[] { (byte)channel }.Concat(BitConverter.GetBytes(hz).Take(5)).ToArray();
+        var expectedMsg = NetSdrMessageHelper.GetControlItemMessage(
+            NetSdrMessageHelper.MsgTypes.SetControlItem,
+            NetSdrMessageHelper.ControlItemCodes.ReceiverFrequency,
+            args);
+
+        //Act
+        await _client.ChangeFrequencyAsync(hz, channel);
+
+        //Assert
+        _tcpMock.Verify(tcp => tcp.SendMessageAsync(
+            It.Is<byte[]>(msg => msg.SequenceEqual(expectedMsg))),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task StartIQThenStopIQTest()
+    {
+        //Arrange
+        await ConnectClientAsync();
+        await _client.StartIQAsync();
+        Assert.That(_client.IQStarted, Is.True);
+
+        //Act
+        await _client.StopIQAsync();
+
+        //Assert
+        _updMock.Verify(udp => udp.StopListening(), Times.Once);
         Assert.That(_client.IQStarted, Is.False);
     }
 
