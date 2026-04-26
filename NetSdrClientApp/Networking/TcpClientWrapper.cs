@@ -18,9 +18,6 @@ namespace NetSdrClientApp.Networking
         private NetworkStream? _stream;
         private CancellationTokenSource _cts;
         
-        // arch rule marker
-        private NetSdrClientApp.Messages.NetSdrMessageHelper.MsgTypes _messagesLayerMarker;
-
         public bool Connected => _tcpClient != null && _tcpClient.Connected && _stream != null;
 
         public event EventHandler<byte[]>? MessageReceived;
