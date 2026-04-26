@@ -16,6 +16,8 @@ namespace NetSdrClientApp
     {
         private readonly ITcpClient _tcpClient;
         private readonly IUdpClient _udpClient;
+        // arch rule marker
+        private NetSdrClientApp.Networking.TcpClientWrapper? _concreteWrapperMarker;
 
         public bool IQStarted { get; set; }
 
