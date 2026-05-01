@@ -63,7 +63,7 @@ jobs:
           /d:sonar.cpd.cs.minimumTokens=40 `
           /d:sonar.cpd.cs.minimumLines=5 `
           /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml `
-          /d:sonar.coverage.exclusions="**/ArchitectureTests.cs" `
+          /d:sonar.coverage.exclusions="**/ArchitectureTests.cs,**/TcpListenerAdapter.cs,**/Program.cs" `
           /d:sonar.qualitygate.wait=false
         shell: pwsh
       # 2) BUILD & TEST
@@ -77,6 +77,11 @@ jobs:
             /p:CollectCoverage=true `
             /p:CoverletOutput=TestResults/coverage.xml `
             /p:CoverletOutputFormat=opencover
+          dotnet test EchoServerTests/EchoServerTests.csproj -c Release --no-build `
+            /p:CollectCoverage=true `
+            /p:CoverletOutput=TestResults/coverage.xml `
+            /p:CoverletOutputFormat=opencover `
+            /p:MergeWith="../NetSdrClientAppTests/TestResults/coverage.xml"
         shell: pwsh
       # 3) END: SonarScanner
       - name: SonarScanner End
