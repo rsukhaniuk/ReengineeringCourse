@@ -18,11 +18,11 @@ public class EchoServerTests
 
         await server.HandleStreamAsync(stream, CancellationToken.None);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(logs, Has.Some.Contains("Echoed 5 bytes."));
             Assert.That(stream.WrittenData, Is.EqualTo(input));
-        });
+        }
     }
 
     [Test]
@@ -57,7 +57,7 @@ public class EchoServerTests
         using var sender = new UdpTimedSender("127.0.0.1", 19999);
         sender.StartSending(10000);
 
-        Assert.Throws<InvalidOperationException>(() => sender.StartSending(10000));
+        Assert.Throws<InvalidOperationException>((Action)(() => sender.StartSending(10000)));
 
         sender.StopSending();
     }
@@ -69,7 +69,7 @@ public class EchoServerTests
         sender.StartSending(10000);
         sender.StopSending();
 
-        Assert.DoesNotThrow(() => sender.StopSending());
+        Assert.DoesNotThrow((Action)(() => sender.StopSending()));
     }
 
     [Test]
