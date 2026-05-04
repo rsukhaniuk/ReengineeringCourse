@@ -123,12 +123,12 @@ namespace NetSdrClientAppTests
             bool success = NetSdrMessageHelper.TranslateMessage(msg, out var actualType, out var actualCode, out _, out _);
 
             //Assert
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 Assert.That(success, Is.True);
                 Assert.That(actualType, Is.EqualTo(type));
                 Assert.That(actualCode, Is.EqualTo(code));
-            });
+            }
         }
     }
 }
