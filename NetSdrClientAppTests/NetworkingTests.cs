@@ -11,7 +11,7 @@ public class UdpClientWrapperTests
         var wrapper = new UdpClientWrapper(0);
 
         // Act & Assert
-        Assert.DoesNotThrow(() => wrapper.StopListening());
+        Assert.DoesNotThrow((Action)(() => wrapper.StopListening()));
     }
 
     [Test]
@@ -21,7 +21,7 @@ public class UdpClientWrapperTests
         var wrapper = new UdpClientWrapper(0);
 
         // Act & Assert
-        Assert.DoesNotThrow(() => wrapper.Exit());
+        Assert.DoesNotThrow((Action)(() => wrapper.Exit()));
     }
 }
 
@@ -34,7 +34,7 @@ public class TcpClientWrapperTests
         var wrapper = new TcpClientWrapper("localhost", 19999);
 
         // Act & Assert
-        Assert.ThrowsAsync<InvalidOperationException>(() => wrapper.SendMessageAsync(new byte[] { 0x01 }));
+        Assert.ThrowsAsync<InvalidOperationException>((Func<Task>)(() => wrapper.SendMessageAsync(new byte[] { 0x01 })));
     }
 
     [Test]
@@ -44,6 +44,6 @@ public class TcpClientWrapperTests
         var wrapper = new TcpClientWrapper("localhost", 19999);
 
         // Act & Assert
-        Assert.ThrowsAsync<InvalidOperationException>(() => wrapper.SendMessageAsync("hello"));
+        Assert.ThrowsAsync<InvalidOperationException>((Func<Task>)(() => wrapper.SendMessageAsync("hello")));
     }
 }
