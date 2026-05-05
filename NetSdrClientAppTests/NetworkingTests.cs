@@ -59,7 +59,9 @@ public class UdpClientWrapperTests
     public void Equals_DifferentType_ReturnsFalse()
     {
         var a = new UdpClientWrapper(12345);
-        Assert.That(a.Equals("not a wrapper"), Is.False);
+        object differentType = "not a wrapper";
+
+        Assert.That(a, Is.Not.EqualTo(differentType));
     }
 
     [Test]
