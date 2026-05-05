@@ -3,13 +3,14 @@ using System.Net.Sockets;
 
 namespace EchoTcpServer;
 
-public class UdpTimedSender : IDisposable
+public sealed class UdpTimedSender : IDisposable
 {
     private readonly string _host;
     private readonly int _port;
     private readonly UdpClient _udpClient;
     private Timer? _timer;
     private ushort _sequence = 0;
+    private bool _disposed;
 
     public UdpTimedSender(string host, int port)
     {
@@ -53,7 +54,10 @@ public class UdpTimedSender : IDisposable
 
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
         StopSending();
         _udpClient.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

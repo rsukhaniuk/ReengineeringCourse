@@ -1,8 +1,6 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,6 +21,7 @@ namespace NetSdrClientApp.Networking
 
         public async Task StartListeningAsync()
         {
+            _cts?.Dispose();
             _cts = new CancellationTokenSource();
             Console.WriteLine("Start listening for UDP messages...");
 
@@ -37,7 +36,7 @@ namespace NetSdrClientApp.Networking
                     Console.WriteLine($"Received from {result.RemoteEndPoint}");
                 }
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException)
             {
                 //empty
             }
@@ -63,14 +62,12 @@ namespace NetSdrClientApp.Networking
 
         public void Exit() => StopListening();
 
-        public override int GetHashCode()
-        {
-            var payload = $"{nameof(UdpClientWrapper)}|{_localEndPoint.Address}|{_localEndPoint.Port}";
+        public override bool Equals(object? obj) =>
+            obj is UdpClientWrapper other &&
+            _localEndPoint.Address.Equals(other._localEndPoint.Address) &&
+            _localEndPoint.Port == other._localEndPoint.Port;
 
-            using var md5 = MD5.Create();
-            var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(payload));
-
-            return BitConverter.ToInt32(hash, 0);
-        }
+        public override int GetHashCode() =>
+            HashCode.Combine(nameof(UdpClientWrapper), _localEndPoint.Address, _localEndPoint.Port);
     }
 }
