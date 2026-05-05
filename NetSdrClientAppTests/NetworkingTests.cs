@@ -23,6 +23,37 @@ public class UdpClientWrapperTests
         // Act & Assert
         Assert.DoesNotThrow((Action)(() => wrapper.Exit()));
     }
+
+    [Test]
+    public void Equals_SamePort_ReturnsTrue()
+    {
+        var a = new UdpClientWrapper(12345);
+        var b = new UdpClientWrapper(12345);
+        Assert.That(a, Is.EqualTo(b));
+    }
+
+    [Test]
+    public void Equals_DifferentPort_ReturnsFalse()
+    {
+        var a = new UdpClientWrapper(12345);
+        var b = new UdpClientWrapper(12346);
+        Assert.That(a, Is.Not.EqualTo(b));
+    }
+
+    [Test]
+    public void Equals_Null_ReturnsFalse()
+    {
+        var a = new UdpClientWrapper(12345);
+        Assert.That(a, Is.Not.Null);
+    }
+
+    [Test]
+    public void GetHashCode_SamePort_ReturnsSameHash()
+    {
+        var a = new UdpClientWrapper(12345);
+        var b = new UdpClientWrapper(12345);
+        Assert.That(a.GetHashCode(), Is.EqualTo(b.GetHashCode()));
+    }
 }
 
 public class TcpClientWrapperTests
