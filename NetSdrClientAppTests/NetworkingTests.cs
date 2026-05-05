@@ -54,6 +54,23 @@ public class UdpClientWrapperTests
         var b = new UdpClientWrapper(12345);
         Assert.That(a.GetHashCode(), Is.EqualTo(b.GetHashCode()));
     }
+
+    [Test]
+    public void Equals_DifferentType_ReturnsFalse()
+    {
+        var a = new UdpClientWrapper(12345);
+        Assert.That(a.Equals("not a wrapper"), Is.False);
+    }
+
+    [Test]
+    public async Task StartListeningAsync_ThenStop_DisposesCtsProperly()
+    {
+        var wrapper = new UdpClientWrapper(0);
+        var listenTask = wrapper.StartListeningAsync();
+        await Task.Delay(20);
+        wrapper.StopListening();
+        await listenTask;
+    }
 }
 
 public class TcpClientWrapperTests
@@ -76,5 +93,19 @@ public class TcpClientWrapperTests
 
         // Act & Assert
         Assert.ThrowsAsync<InvalidOperationException>((Func<Task>)(() => wrapper.SendMessageAsync("hello")));
+    }
+
+    [Test]
+    public void Connected_WhenNotConnected_ReturnsFalse()
+    {
+        var wrapper = new TcpClientWrapper("localhost", 19999);
+        Assert.That(wrapper.Connected, Is.False);
+    }
+
+    [Test]
+    public void Disconnect_WhenNotConnected_DoesNotThrow()
+    {
+        var wrapper = new TcpClientWrapper("localhost", 19999);
+        Assert.DoesNotThrow((Action)(() => wrapper.Disconnect()));
     }
 }
