@@ -108,4 +108,99 @@ public class TcpClientWrapperTests
         var wrapper = new TcpClientWrapper("localhost", 19999);
         Assert.DoesNotThrow((Action)(() => wrapper.Disconnect()));
     }
+
+    private static System.Net.Sockets.TcpListener StartListener(out int port)
+    {
+        var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+        listener.Start();
+        port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+        return listener;
+    }
+
+    [Test]
+    public async Task Connect_SendMessage_Disconnect_HappyPath()
+    {
+        // Arrange
+        var listener = StartListener(out int port);
+        try
+        {
+            _ = listener.AcceptTcpClientAsync();
+            var wrapper = new TcpClientWrapper("127.0.0.1", port);
+
+            // Act
+            wrapper.Connect();
+            await Task.Delay(50);
+
+            // Assert
+            Assert.That(wrapper.Connected, Is.True);
+            Assert.DoesNotThrowAsync((Func<Task>)(() => wrapper.SendMessageAsync([0x01])));
+            wrapper.Disconnect();
+            Assert.That(wrapper.Connected, Is.False);
+        }
+        finally
+        {
+            listener.Stop();
+        }
+    }
+
+    [Test]
+    public async Task MessageReceived_RaisedWhenServerSendsData()
+    {
+        // Arrange
+        var listener = StartListener(out int port);
+        var received = new TaskCompletionSource<byte[]>(TaskCreationOptions.RunContinuationsAsynchronously);
+        try
+        {
+            _ = Task.Run(async () =>
+            {
+                var client = await listener.AcceptTcpClientAsync();
+                var stream = client.GetStream();
+                await stream.WriteAsync(new byte[] { 0x01, 0x02, 0x03 });
+            });
+
+            var wrapper = new TcpClientWrapper("127.0.0.1", port);
+            wrapper.MessageReceived += (_, data) => received.TrySetResult(data);
+
+            // Act
+            wrapper.Connect();
+            var result = await received.Task.WaitAsync(TimeSpan.FromSeconds(3));
+
+            // Assert
+            Assert.That(result, Is.EqualTo(new byte[] { 0x01, 0x02, 0x03 }));
+            wrapper.Disconnect();
+        }
+        finally
+        {
+            listener.Stop();
+        }
+    }
+
+    [Test]
+    public async Task StartListening_ServerClosesConnection_ListenerLoopHandlesException()
+    {
+        // Arrange — server closes immediately, triggering catch(Exception) in the read loop
+        var listener = StartListener(out int port);
+        var serverClosed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        try
+        {
+            _ = Task.Run(async () =>
+            {
+                var client = await listener.AcceptTcpClientAsync();
+                await Task.Delay(30);
+                client.Close();
+                serverClosed.TrySetResult();
+            });
+
+            var wrapper = new TcpClientWrapper("127.0.0.1", port);
+
+            // Act & Assert — no exception propagated to caller
+            wrapper.Connect();
+            await serverClosed.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.Pass();
+        }
+        finally
+        {
+            listener.Stop();
+        }
+    }
 }
