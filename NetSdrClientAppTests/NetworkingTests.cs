@@ -59,7 +59,7 @@ public class UdpClientWrapperTests
     public void Equals_DifferentType_ReturnsFalse()
     {
         var a = new UdpClientWrapper(12345);
-        Assert.That(a.Equals("not a wrapper"), Is.False);
+        Assert.That(a.Equals("not a wrapper"), Is.EqualTo(false));
     }
 
     [Test]
@@ -70,6 +70,7 @@ public class UdpClientWrapperTests
         await Task.Delay(20);
         wrapper.StopListening();
         await listenTask;
+        Assert.That(listenTask.IsCompletedSuccessfully, Is.True);
     }
 }
 
