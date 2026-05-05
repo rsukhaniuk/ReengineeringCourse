@@ -9,7 +9,10 @@ Console.WriteLine("Press any key to stop sending...");
 sender.StartSending(5000);
 
 Console.WriteLine("Press 'q' to quit...");
-while (Console.ReadKey(intercept: true).Key != ConsoleKey.Q) { }
+while (Console.ReadKey(intercept: true).Key != ConsoleKey.Q)
+{
+    // wait for 'q' key press
+}
 
 sender.StopSending();
 server.Stop();
